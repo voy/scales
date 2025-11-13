@@ -2,6 +2,10 @@
 
 A simple web application that displays random major and minor scales to help you learn scale construction.
 
+This is a vibe coded app created for my son to help him prepare for a test in music.
+
+![Screenshot of the Musical Scale Learning App](./images/screenshot.png)
+
 ## Features
 
 - Random scale generation on each page load
@@ -13,11 +17,13 @@ A simple web application that displays random major and minor scales to help you
 ## Getting Started
 
 1. Install dependencies:
+
 ```bash
 npm install
 ```
 
 2. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -33,4 +39,3 @@ npm run build
 ```
 
 The built files will be in the `dist` directory.
-
