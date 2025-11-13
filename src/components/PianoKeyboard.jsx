@@ -54,26 +54,48 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
     
     // For each note in the scale, if it's a black key, find the appropriate black key position
     // We need to determine which black key to use based on where it appears in the scale sequence
+    let lastKeyIndex = rootIndex;
+    
     scale.notes.forEach((note, scaleIndex) => {
-      blackKeyPositions.forEach(({ note: bkNote, enharmonic: bkEnh, octave, position }) => {
-        // Check if this black key matches the scale note (considering enharmonics)
-        if (bkNote === note || bkEnh === note) {
-          const keyIndex = position - 1; // Convert to 0-indexed white key position
-          // For scales starting at root, include black keys that are:
-          // 1. At or after the root position
-          // 2. Part of the scale (we know it is because note matches)
-          // 3. Use the octave that fits in the scale pattern
-          if (keyIndex >= rootIndex) {
-            // Determine which octave to use - prefer the one that's in the scale range
-            // If the keyIndex is in first octave range (0-6), use octave 1
-            // If the keyIndex is in second octave range (7-13), use octave 2
-            const useOctave = keyIndex < 7 ? 1 : 2;
-            if (octave === useOctave) {
-              expected.add(`black-${octave}-${bkNote}`);
+      if (scaleIndex === 0) return; // Skip root, already added
+      
+      // Check if this note is a black key
+      const isBlackKey = blackKeyPositions.some(({ note: bkNote, enharmonic: bkEnh }) => 
+        bkNote === note || bkEnh === note
+      );
+      
+      if (isBlackKey) {
+        // Find the black key that comes after the last key we added
+        // Black keys are positioned between white keys, so we need to find the one
+        // that comes after lastKeyIndex
+        let bestMatch = null;
+        let bestKeyIndex = Infinity;
+        
+        for (const { note: bkNote, enharmonic: bkEnh, octave, position } of blackKeyPositions) {
+          if (bkNote === note || bkEnh === note) {
+            const keyIndex = position - 1; // Convert to 0-indexed white key position
+            // Find the black key that's closest to but >= lastKeyIndex
+            if (keyIndex >= lastKeyIndex - 1 && keyIndex < bestKeyIndex) {
+              bestMatch = { note: bkNote, octave, position };
+              bestKeyIndex = keyIndex;
             }
           }
         }
-      });
+        
+        if (bestMatch) {
+          expected.add(`black-${bestMatch.octave}-${bestMatch.note}`);
+          lastKeyIndex = bestMatch.position; // Update to after this black key
+        }
+      } else {
+        // It's a white key - find it and update lastKeyIndex
+        for (let j = lastKeyIndex; j < whiteKeys.length; j++) {
+          if (whiteKeys[j] === note) {
+            expected.add(`white-${j}`);
+            lastKeyIndex = j + 1;
+            break;
+          }
+        }
+      }
     });
     
     return expected;
