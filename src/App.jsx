@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
-import { generateRandomScale } from './utils/scaleLogic'
+import { generateRandomScale, generateRandomMajorScale, generateRandomMinorScale, constructScale } from './utils/scaleLogic'
 import PianoKeyboard from './components/PianoKeyboard'
 import './App.css'
 
 const HINT_TIMEOUT = 60000;
+const ROOT_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
 
 function App() {
   const [scale, setScale] = useState(null);
@@ -169,7 +170,7 @@ function App() {
     setChecked(true);
   };
 
-  const handleNewScale = () => {
+  const resetScaleState = (newScale) => {
     // Clear timer and hide hint
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -177,11 +178,30 @@ function App() {
     setShowHint(false);
     checkedRef.current = false;
     
-    const newScale = generateRandomScale();
     setScale(newScale);
     setSelectedNotes(new Set());
     setChecked(false);
     setIsCorrect(false);
+  };
+
+  const handleNewScale = () => {
+    const newScale = generateRandomScale();
+    resetScaleState(newScale);
+  };
+
+  const handleRandomMajor = () => {
+    const newScale = generateRandomMajorScale();
+    resetScaleState(newScale);
+  };
+
+  const handleRandomMinor = () => {
+    const newScale = generateRandomMinorScale();
+    resetScaleState(newScale);
+  };
+
+  const handleSpecificScale = (root, type) => {
+    const newScale = constructScale(root, type);
+    resetScaleState(newScale);
   };
   
   // Get pattern hint as W-H notation
@@ -239,12 +259,58 @@ function App() {
               )}
             </>
           )}
-          <button 
-            onClick={handleNewScale} 
-            className="new-scale-button"
-          >
-            Neue Tonleiter
-          </button>
+          <div className="scale-selection">
+            <div className="random-buttons">
+              <button 
+                onClick={handleNewScale} 
+                className="scale-button"
+              >
+                Neue zufällige Tonleiter
+              </button>
+              <button 
+                onClick={handleRandomMajor} 
+                className="scale-button"
+              >
+                Zufällige Dur-Tonleiter
+              </button>
+              <button 
+                onClick={handleRandomMinor} 
+                className="scale-button"
+              >
+                Zufällige Moll-Tonleiter
+              </button>
+            </div>
+            <div className="specific-scales">
+              <div className="scale-group">
+                <h3>Dur-Tonleitern</h3>
+                <div className="scale-buttons-grid">
+                  {ROOT_NOTES.map(root => (
+                    <button
+                      key={`${root}-major`}
+                      onClick={() => handleSpecificScale(root, 'major')}
+                      className="scale-button small"
+                    >
+                      {root} Dur
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="scale-group">
+                <h3>Moll-Tonleitern</h3>
+                <div className="scale-buttons-grid">
+                  {ROOT_NOTES.map(root => (
+                    <button
+                      key={`${root}-minor`}
+                      onClick={() => handleSpecificScale(root, 'minor')}
+                      className="scale-button small"
+                    >
+                      {root} Moll
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>

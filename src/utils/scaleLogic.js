@@ -45,6 +45,16 @@ export function generateRandomScale() {
   return constructScale(root, type);
 }
 
+export function generateRandomMajorScale() {
+  const root = ROOT_NOTES[Math.floor(Math.random() * ROOT_NOTES.length)];
+  return constructScale(root, 'major');
+}
+
+export function generateRandomMinorScale() {
+  const root = ROOT_NOTES[Math.floor(Math.random() * ROOT_NOTES.length)];
+  return constructScale(root, 'minor');
+}
+
 export function constructScale(root, type) {
   const pattern = type === 'major' ? MAJOR_PATTERN : MINOR_PATTERN;
   const rootIndex = CHROMATIC.indexOf(root);
