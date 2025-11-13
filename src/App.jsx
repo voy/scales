@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { generateRandomScale } from './utils/scaleLogic'
-import { toGermanNoteArray, getGermanScaleType } from './utils/germanNotes'
 import PianoKeyboard from './components/PianoKeyboard'
 import './App.css'
 
@@ -35,42 +34,41 @@ function App() {
   const handleCheck = () => {
     if (!scale) return;
     
-    // Scale object has English notes internally, convert to German for display logic
-    // But for checking, we need to work with the actual scale notes
     // Find root note position in first octave (indices 0-6)
-    const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].indexOf(scale.root);
+    const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'H'].indexOf(scale.root);
     
     // Build expected scale starting from root in first octave
     const expectedKeys = new Set();
-    const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'H', 'C', 'D', 'E', 'F', 'G', 'A', 'H'];
     
     // Add root note (first octave)
     expectedKeys.add(`white-${rootIndex}`);
     
-    // Build scale pattern from root - scale.notes are in English
+    // Build scale pattern from root - scale.notes are in German
     const scaleNotes = scale.notes;
     const blackKeyPositions = [
       { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
       { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
       { note: 'F#', enharmonic: 'Gb', octave: 1, position: 4 },
       { note: 'G#', enharmonic: 'Ab', octave: 1, position: 5 },
-      { note: 'A#', enharmonic: 'Bb', octave: 1, position: 6 },
+      { note: 'B', octave: 1, position: 6 }, // B in German = Bb in English
       { note: 'C#', enharmonic: 'Db', octave: 2, position: 8 },
       { note: 'D#', enharmonic: 'Eb', octave: 2, position: 9 },
       { note: 'F#', enharmonic: 'Gb', octave: 2, position: 11 },
       { note: 'G#', enharmonic: 'Ab', octave: 2, position: 12 },
-      { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
+      { note: 'B', octave: 2, position: 13 }, // B in German = Bb in English
     ];
     
     // Process scale notes sequentially to build expected keys
+    // Include all 8 notes (root + 7 scale degrees including octave)
     let lastKeyIndex = rootIndex;
     
     scaleNotes.forEach((note, scaleIndex) => {
       if (scaleIndex === 0) return; // Skip root, already added
       
-      // Check if this note is a black key (Bb, C#, D#, F#, G#, A#)
+      // Check if this note is a black key (B, C#, D#, F#, G#)
       const isBlackKey = blackKeyPositions.some(({ note: bkNote, enharmonic: bkEnh }) => 
-        bkNote === note || bkEnh === note
+        bkNote === note || (bkEnh && bkEnh === note)
       );
       
       if (isBlackKey) {
@@ -79,22 +77,25 @@ function App() {
         let bestKeyIndex = Infinity;
         
         for (const { note: bkNote, enharmonic: bkEnh, octave, position } of blackKeyPositions) {
-          if (bkNote === note || bkEnh === note) {
+          if (bkNote === note || (bkEnh && bkEnh === note)) {
             const keyIndex = position - 1; // Convert to 0-indexed white key position
             // Find the black key that's closest to but >= lastKeyIndex
             if (keyIndex >= lastKeyIndex - 1 && keyIndex < bestKeyIndex) {
-              bestMatch = { note: bkNote, octave, position };
+              bestMatch = { note: bkNote || 'B', octave, position };
               bestKeyIndex = keyIndex;
             }
           }
         }
         
         if (bestMatch) {
-          expectedKeys.add(`black-${bestMatch.octave}-${bestMatch.note}`);
+          const noteId = bestMatch.note || 'B';
+          expectedKeys.add(`black-${bestMatch.octave}-${noteId}`);
           lastKeyIndex = bestMatch.position; // Update to after this black key
         }
       } else {
         // It's a white key - find it and update lastKeyIndex
+        // For the octave note (last note), we need to find the next occurrence after the 7th note
+        // The loop should already find it correctly, but ensure we're looking in the right range
         for (let j = lastKeyIndex; j < whiteKeys.length; j++) {
           if (whiteKeys[j] === note) {
             expectedKeys.add(`white-${j}`);
@@ -127,10 +128,7 @@ function App() {
 
   if (!scale) return <div>Laden...</div>;
 
-  // Convert scale to German for display
-  const germanRoot = scale.root === 'B' ? 'H' : scale.root;
-  const germanType = getGermanScaleType(scale.type);
-  const germanNotes = toGermanNoteArray(scale.notes);
+  const scaleTypeLabel = scale.type === 'major' ? 'Dur' : 'Moll';
 
   return (
     <div className="app">
@@ -139,11 +137,11 @@ function App() {
       </header>
       <main>
         <div className="scale-info">
-          <h2>Konstruiere: {germanRoot} {germanType}</h2>
+          <h2>Konstruiere: {scale.root} {scaleTypeLabel}</h2>
           <p className="instruction">Klicke die Tasten, die zu dieser Tonleiter gehören</p>
         </div>
         <PianoKeyboard 
-          scale={{ ...scale, root: germanRoot, type: germanType, notes: germanNotes }}
+          scale={scale}
           selectedNotes={selectedNotes}
           onNoteToggle={handleNoteToggle}
           checked={checked}
@@ -164,7 +162,7 @@ function App() {
               </div>
               {!isCorrect && (
                 <div className="correct-answer">
-                  Richtige Antwort: {germanNotes.join(' - ')}
+                  Richtige Antwort: {scale.notes.join(' - ')}
                 </div>
               )}
             </>

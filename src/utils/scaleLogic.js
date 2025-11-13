@@ -1,45 +1,37 @@
 // Scale construction logic
 
-// Internal representation uses English note names (B, Bb)
-// Display will be converted to German (H, B)
-const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-const ROOT_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+// Uses German note names (H instead of B, B instead of Bb)
+const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'B', 'H'];
+const ROOT_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
 const MAJOR_PATTERN = [2, 2, 1, 2, 2, 2, 1]; // semitones
 const MINOR_PATTERN = [2, 1, 2, 2, 1, 2, 2]; // semitones
 
 // Convert sharps to flats where appropriate based on standard scale spellings
+// In German: B = Bb (English), H = B (English)
 function normalizeNote(note, root, type) {
-  const enharmonicMap = {
-    'A#': 'Bb',
-    'D#': 'Eb',
-    'G#': 'Ab',
-    'C#': 'Db',
-    'F#': 'Gb'
-  };
+  // F Major: F, G, A, B, C, D, E (B = Bb in English)
+  if (root === 'F' && type === 'major' && note === 'A#') return 'B';
   
-  // F Major: F, G, A, Bb, C, D, E
-  if (root === 'F' && type === 'major' && note === 'A#') return 'Bb';
+  // D Minor: D, E, F, G, A, B, C (B = Bb in English)
+  if (root === 'D' && type === 'minor' && note === 'A#') return 'B';
   
-  // D Minor: D, E, F, G, A, Bb, C
-  if (root === 'D' && type === 'minor' && note === 'A#') return 'Bb';
-  
-  // C Minor: C, D, Eb, F, G, Ab, Bb
+  // C Minor: C, D, Eb, F, G, Ab, B (B = Bb in English)
   if (root === 'C' && type === 'minor') {
     if (note === 'D#') return 'Eb';
     if (note === 'G#') return 'Ab';
-    if (note === 'A#') return 'Bb';
+    if (note === 'A#') return 'B';
   }
   
-  // G Minor: G, A, Bb, C, D, Eb, F
+  // G Minor: G, A, B, C, D, Eb, F (B = Bb in English)
   if (root === 'G' && type === 'minor') {
-    if (note === 'A#') return 'Bb';
+    if (note === 'A#') return 'B';
     if (note === 'D#') return 'Eb';
   }
   
-  // F Minor: F, G, Ab, Bb, C, Db, Eb
+  // F Minor: F, G, Ab, B, C, Db, Eb (B = Bb in English)
   if (root === 'F' && type === 'minor') {
     if (note === 'G#') return 'Ab';
-    if (note === 'A#') return 'Bb';
+    if (note === 'A#') return 'B';
     if (note === 'C#') return 'Db';
     if (note === 'D#') return 'Eb';
   }
@@ -69,7 +61,7 @@ export function constructScale(root, type) {
   return {
     root,
     type,
-    notes: scale.slice(0, 7) // Return 7 notes (root to 7th)
+    notes: scale // Return 8 notes (root to octave)
   };
 }
 
