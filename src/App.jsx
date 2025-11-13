@@ -3,7 +3,7 @@ import { generateRandomScale, generateRandomMajorScale, generateRandomMinorScale
 import PianoKeyboard from './components/PianoKeyboard'
 import './App.css'
 
-const HINT_TIMEOUT = 60000;
+const HINT_TIMEOUT = 30000;
 const ROOT_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'H'];
 
 function App() {

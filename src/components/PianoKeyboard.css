@@ -28,29 +28,29 @@
 }
 
 .white-key.selected {
-  background: #90caf9;
-  color: #333;
+  background: #64b5f6;
+  color: #0d47a1;
 }
 
 .white-key.root {
-  border: 2px solid #2c5aa0;
+  border: 2px solid #42a5f5;
   font-weight: bold;
 }
 
 .white-key.correct {
-  background: #4caf50;
-  color: white;
+  background: #66bb6a;
+  color: #1b5e20;
 }
 
 .white-key.incorrect {
-  background: #f44336;
+  background: #ef5350;
   color: white;
 }
 
 .white-key.missed {
   background: #ffeb3b;
-  color: #333;
-  border: 2px dashed #ff9800;
+  color: #f57f17;
+  border: 2px dashed #ffc107;
 }
 
 .white-key .note-label {
@@ -86,8 +86,8 @@
 }
 
 .black-key.selected {
-  background: #64b5f6;
-  color: white;
+  background: #42a5f5;
+  color: #0d47a1;
 }
 
 .black-key.correct {
@@ -96,14 +96,14 @@
 }
 
 .black-key.incorrect {
-  background: #f44336;
+  background: #e53935;
   color: white;
 }
 
 .black-key.missed {
-  background: #ffeb3b;
-  color: #333;
-  border: 2px dashed #ff9800;
+  background: #fdd835;
+  color: #f57f17;
+  border: 2px dashed #fbc02d;
 }
 
 .black-key .note-label {
@@ -113,6 +113,6 @@
 }
 
 .black-key.missed .note-label {
-  color: #333;
+  color: #f57f17;
 }
 

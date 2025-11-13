@@ -11,7 +11,7 @@ header {
 
 header h1 {
   font-size: 2rem;
-  color: #2c3e50;
+  color: #4a7fa3;
 }
 
 main {
@@ -28,7 +28,7 @@ main {
 .scale-info h2 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: #4a7fa3;
 }
 
 .scale-notes {
@@ -63,12 +63,12 @@ main {
 }
 
 .check-button {
-  background: #4a90e2;
-  color: white;
+  background: #5ba5c4;
+  color: #1a3a4f;
 }
 
 .check-button:hover:not(:disabled) {
-  background: #357abd;
+  background: #4a95b4;
   transform: translateY(-2px);
 }
 
@@ -78,12 +78,12 @@ main {
 }
 
 .new-scale-button {
-  background: #2c3e50;
-  color: white;
+  background: #8ba5c1;
+  color: #2a3a4a;
 }
 
 .new-scale-button:hover {
-  background: #1a252f;
+  background: #7b95b1;
   transform: translateY(-2px);
 }
 
@@ -96,12 +96,12 @@ main {
 
 .feedback.correct {
   color: #4caf50;
-  background: #e8f5e9;
+  background: #c8e6c9;
 }
 
 .feedback.incorrect {
-  color: #f44336;
-  background: #ffebee;
+  color: #ef5350;
+  background: #ffcdd2;
 }
 
 .correct-answer {
@@ -113,11 +113,11 @@ main {
 .pattern-hint {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
-  background: #fff3cd;
-  border: 1px solid #ffc107;
+  background: #fff9c4;
+  border: 1px solid #ffd54f;
   border-radius: 8px;
   font-size: 1.2rem;
-  color: #856404;
+  color: #f57f17;
   font-weight: 600;
   animation: fadeIn 1s ease-in;
 }
@@ -160,13 +160,13 @@ main {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  background: #2c3e50;
-  color: white;
+  background: #8ba5c1;
+  color: #2a3a4a;
   white-space: nowrap;
 }
 
 .scale-button:hover {
-  background: #1a252f;
+  background: #7b95b1;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
@@ -191,7 +191,7 @@ main {
 
 .scale-group h3 {
   font-size: 1.3rem;
-  color: #2c3e50;
+  color: #4a7fa3;
   margin: 0;
   text-align: center;
   font-weight: 600;
