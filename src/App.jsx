@@ -12,6 +12,11 @@ function App() {
   const [checked, setChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(() => {
+    // Load from localStorage on initial render
+    const saved = localStorage.getItem('showAdvanced');
+    return saved === 'true';
+  });
   const timerRef = useRef(null);
   const checkedRef = useRef(false);
 
@@ -203,6 +208,12 @@ function App() {
     const newScale = constructScale(root, type);
     resetScaleState(newScale);
   };
+
+  const toggleAdvanced = () => {
+    const newValue = !showAdvanced;
+    setShowAdvanced(newValue);
+    localStorage.setItem('showAdvanced', String(newValue));
+  };
   
   // Get pattern hint as W-H notation
   const getPatternHint = () => {
@@ -267,49 +278,61 @@ function App() {
               >
                 Neue zufällige Tonleiter
               </button>
-              <button 
-                onClick={handleRandomMajor} 
-                className="scale-button"
-              >
-                Zufällige Dur-Tonleiter
-              </button>
-              <button 
-                onClick={handleRandomMinor} 
-                className="scale-button"
-              >
-                Zufällige Moll-Tonleiter
-              </button>
             </div>
-            <div className="specific-scales">
-              <div className="scale-group">
-                <h3>Dur-Tonleitern</h3>
-                <div className="scale-buttons-grid">
-                  {ROOT_NOTES.map(root => (
-                    <button
-                      key={`${root}-major`}
-                      onClick={() => handleSpecificScale(root, 'major')}
-                      className="scale-button small"
-                    >
-                      {root} Dur
-                    </button>
-                  ))}
+            <button 
+              onClick={toggleAdvanced} 
+              className="advanced-toggle"
+            >
+              {showAdvanced ? '▼ Erweiterte Einstellungen ausblenden' : '▶ Erweiterte Einstellungen'}
+            </button>
+            {showAdvanced && (
+              <>
+                <div className="random-buttons">
+                  <button 
+                    onClick={handleRandomMajor} 
+                    className="scale-button"
+                  >
+                    Zufällige Dur-Tonleiter
+                  </button>
+                  <button 
+                    onClick={handleRandomMinor} 
+                    className="scale-button"
+                  >
+                    Zufällige Moll-Tonleiter
+                  </button>
                 </div>
-              </div>
-              <div className="scale-group">
-                <h3>Moll-Tonleitern</h3>
-                <div className="scale-buttons-grid">
-                  {ROOT_NOTES.map(root => (
-                    <button
-                      key={`${root}-minor`}
-                      onClick={() => handleSpecificScale(root, 'minor')}
-                      className="scale-button small"
-                    >
-                      {root} Moll
-                    </button>
-                  ))}
+                <div className="specific-scales">
+                  <div className="scale-group">
+                    <h3>Dur-Tonleitern</h3>
+                    <div className="scale-buttons-grid">
+                      {ROOT_NOTES.map(root => (
+                        <button
+                          key={`${root}-major`}
+                          onClick={() => handleSpecificScale(root, 'major')}
+                          className="scale-button small"
+                        >
+                          {root} Dur
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="scale-group">
+                    <h3>Moll-Tonleitern</h3>
+                    <div className="scale-buttons-grid">
+                      {ROOT_NOTES.map(root => (
+                        <button
+                          key={`${root}-minor`}
+                          onClick={() => handleSpecificScale(root, 'minor')}
+                          className="scale-button small"
+                        >
+                          {root} Moll
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </main>
