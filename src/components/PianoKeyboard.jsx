@@ -1,24 +1,25 @@
 import './PianoKeyboard.css'
+import { toGermanNote } from '../utils/germanNotes'
 
 const BLACK_KEYS = [
   // First octave
-  { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
-  { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
-  { note: 'F#', enharmonic: 'Gb', octave: 1, position: 4 },
-  { note: 'G#', enharmonic: 'Ab', octave: 1, position: 5 },
-  { note: 'A#', enharmonic: 'Bb', octave: 1, position: 6 },
+  { note: 'C#', enharmonic: 'Db', germanNote: 'C#', octave: 1, position: 1 },
+  { note: 'D#', enharmonic: 'Eb', germanNote: 'D#', octave: 1, position: 2 },
+  { note: 'F#', enharmonic: 'Gb', germanNote: 'F#', octave: 1, position: 4 },
+  { note: 'G#', enharmonic: 'Ab', germanNote: 'G#', octave: 1, position: 5 },
+  { note: 'A#', enharmonic: 'Bb', germanNote: 'B', octave: 1, position: 6 }, // Bb becomes B in German
   // Second octave
-  { note: 'C#', enharmonic: 'Db', octave: 2, position: 8 },
-  { note: 'D#', enharmonic: 'Eb', octave: 2, position: 9 },
-  { note: 'F#', enharmonic: 'Gb', octave: 2, position: 11 },
-  { note: 'G#', enharmonic: 'Ab', octave: 2, position: 12 },
-  { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
+  { note: 'C#', enharmonic: 'Db', germanNote: 'C#', octave: 2, position: 8 },
+  { note: 'D#', enharmonic: 'Eb', germanNote: 'D#', octave: 2, position: 9 },
+  { note: 'F#', enharmonic: 'Gb', germanNote: 'F#', octave: 2, position: 11 },
+  { note: 'G#', enharmonic: 'Ab', germanNote: 'G#', octave: 2, position: 12 },
+  { note: 'A#', enharmonic: 'Bb', germanNote: 'B', octave: 2, position: 13 }, // Bb becomes B in German
 ];
 
 function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect }) {
   const scaleNotes = new Set(scale.notes);
-  const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
-  const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].indexOf(scale.root);
+  const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'H', 'C', 'D', 'E', 'F', 'G', 'A', 'H']; // German: H instead of B
+  const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'H'].indexOf(scale.root);
   
   // Build expected keys starting from root
   const getExpectedKeys = () => {
@@ -59,9 +60,13 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
     scale.notes.forEach((note, scaleIndex) => {
       if (scaleIndex === 0) return; // Skip root, already added
       
-      // Check if this note is a black key
+      // Check if this note is a black key (convert German to English for matching)
+      // German B = English Bb, German H = English B
+      const englishNote = note === 'B' ? 'Bb' : (note === 'H' ? 'B' : note);
       const isBlackKey = blackKeyPositions.some(({ note: bkNote, enharmonic: bkEnh }) => 
-        bkNote === note || bkEnh === note
+        bkNote === englishNote || bkEnh === englishNote ||
+        (note === 'B' && (bkNote === 'Bb' || bkEnh === 'Bb')) ||
+        (note === 'H' && (bkNote === 'B' || bkEnh === 'B'))
       );
       
       if (isBlackKey) {
@@ -72,7 +77,9 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
         let bestKeyIndex = Infinity;
         
         for (const { note: bkNote, enharmonic: bkEnh, octave, position } of blackKeyPositions) {
-          if (bkNote === note || bkEnh === note) {
+          if (bkNote === englishNote || bkEnh === englishNote ||
+              (note === 'B' && (bkNote === 'Bb' || bkEnh === 'Bb')) ||
+              (note === 'H' && (bkNote === 'B' || bkEnh === 'B'))) {
             const keyIndex = position - 1; // Convert to 0-indexed white key position
             // Find the black key that's closest to but >= lastKeyIndex
             if (keyIndex >= lastKeyIndex - 1 && keyIndex < bestKeyIndex) {
@@ -113,10 +120,16 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
     return expectedKeys.has(keyId);
   };
   
-  // Get the display name (prefer the one in the scale)
-  const getDisplayName = (note, enharmonic) => {
-    if (scaleNotes.has(enharmonic)) return enharmonic;
-    return note;
+  // Get the display name in German (prefer the one in the scale)
+  const getDisplayName = (note, enharmonic, germanNote) => {
+    // Check if the scale uses this note (in German)
+    if (scaleNotes.has(germanNote)) return germanNote;
+    if (scaleNotes.has(enharmonic)) {
+      // If enharmonic is Bb, it becomes B in German
+      return enharmonic === 'Bb' ? 'B' : enharmonic;
+    }
+    // Convert to German for display
+    return germanNote || toGermanNote(note);
   };
 
   const handleWhiteKeyClick = (note, index) => {
@@ -199,8 +212,8 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
         ))}
       </div>
       <div className="black-keys">
-        {BLACK_KEYS.map(({ note, enharmonic, octave, position }) => {
-          const displayName = getDisplayName(note, enharmonic);
+        {BLACK_KEYS.map(({ note, enharmonic, octave, position, germanNote }) => {
+          const displayName = getDisplayName(note, enharmonic, germanNote);
           // Calculate position: black keys are centered between white keys
           // Position N means the black key is between white key (N-1) and white key N
           // Use transform to center precisely

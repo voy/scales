@@ -1,5 +1,7 @@
 // Scale construction logic
 
+// Internal representation uses English note names (B, Bb)
+// Display will be converted to German (H, B)
 const CHROMATIC = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 const ROOT_NOTES = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const MAJOR_PATTERN = [2, 2, 1, 2, 2, 2, 1]; // semitones

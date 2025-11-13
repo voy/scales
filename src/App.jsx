@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { generateRandomScale } from './utils/scaleLogic'
+import { toGermanNoteArray, getGermanScaleType } from './utils/germanNotes'
 import PianoKeyboard from './components/PianoKeyboard'
 import './App.css'
 
@@ -34,6 +35,8 @@ function App() {
   const handleCheck = () => {
     if (!scale) return;
     
+    // Scale object has English notes internally, convert to German for display logic
+    // But for checking, we need to work with the actual scale notes
     // Find root note position in first octave (indices 0-6)
     const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].indexOf(scale.root);
     
@@ -44,26 +47,8 @@ function App() {
     // Add root note (first octave)
     expectedKeys.add(`white-${rootIndex}`);
     
-    // Build scale pattern from root
+    // Build scale pattern from root - scale.notes are in English
     const scaleNotes = scale.notes;
-    let currentIndex = rootIndex;
-    
-    // For each note in the scale after the root
-    for (let i = 1; i < scaleNotes.length; i++) {
-      const targetNote = scaleNotes[i];
-      
-      // Find the next occurrence of this note starting from currentIndex
-      for (let j = currentIndex + 1; j < whiteKeys.length; j++) {
-        if (whiteKeys[j] === targetNote) {
-          expectedKeys.add(`white-${j}`);
-          currentIndex = j;
-          break;
-        }
-      }
-    }
-    
-    // Add black keys that are in the scale pattern
-    // We need to find which black keys are part of the scale, starting from root
     const blackKeyPositions = [
       { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
       { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
@@ -77,22 +62,19 @@ function App() {
       { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
     ];
     
-    // For each note in the scale, if it's a black key, find the appropriate black key position
-    // We need to determine which black key to use based on where it appears in the scale sequence
+    // Process scale notes sequentially to build expected keys
     let lastKeyIndex = rootIndex;
     
     scaleNotes.forEach((note, scaleIndex) => {
       if (scaleIndex === 0) return; // Skip root, already added
       
-      // Check if this note is a black key
+      // Check if this note is a black key (Bb, C#, D#, F#, G#, A#)
       const isBlackKey = blackKeyPositions.some(({ note: bkNote, enharmonic: bkEnh }) => 
         bkNote === note || bkEnh === note
       );
       
       if (isBlackKey) {
         // Find the black key that comes after the last key we added
-        // Black keys are positioned between white keys, so we need to find the one
-        // that comes after lastKeyIndex
         let bestMatch = null;
         let bestKeyIndex = Infinity;
         
@@ -143,20 +125,25 @@ function App() {
     setIsCorrect(false);
   };
 
-  if (!scale) return <div>Loading...</div>;
+  if (!scale) return <div>Laden...</div>;
+
+  // Convert scale to German for display
+  const germanRoot = scale.root === 'B' ? 'H' : scale.root;
+  const germanType = getGermanScaleType(scale.type);
+  const germanNotes = toGermanNoteArray(scale.notes);
 
   return (
     <div className="app">
       <header>
-        <h1>Musical Scale Learning</h1>
+        <h1>Tonleiter lernen</h1>
       </header>
       <main>
         <div className="scale-info">
-          <h2>Construct: {scale.root} {scale.type.charAt(0).toUpperCase() + scale.type.slice(1)}</h2>
-          <p className="instruction">Click the keys that belong to this scale</p>
+          <h2>Konstruiere: {germanRoot} {germanType}</h2>
+          <p className="instruction">Klicke die Tasten, die zu dieser Tonleiter gehören</p>
         </div>
         <PianoKeyboard 
-          scale={scale} 
+          scale={{ ...scale, root: germanRoot, type: germanType, notes: germanNotes }}
           selectedNotes={selectedNotes}
           onNoteToggle={handleNoteToggle}
           checked={checked}
@@ -168,16 +155,16 @@ function App() {
             disabled={checked}
             className="check-button"
           >
-            Check Answer
+            Antwort prüfen
           </button>
           {checked && (
             <>
               <div className={`feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
-                {isCorrect ? '✓ Correct!' : '✗ Incorrect'}
+                {isCorrect ? '✓ Richtig!' : '✗ Falsch'}
               </div>
               {!isCorrect && (
                 <div className="correct-answer">
-                  Correct answer: {scale.notes.join(' - ')}
+                  Richtige Antwort: {germanNotes.join(' - ')}
                 </div>
               )}
             </>
@@ -186,7 +173,7 @@ function App() {
             onClick={handleNewScale} 
             className="new-scale-button"
           >
-            New Scale
+            Neue Tonleiter
           </button>
         </div>
       </main>
