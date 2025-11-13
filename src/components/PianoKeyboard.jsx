@@ -1,6 +1,5 @@
 import './PianoKeyboard.css'
 
-const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const BLACK_KEYS = [
   // First octave
   { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
@@ -18,15 +17,68 @@ const BLACK_KEYS = [
 
 function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect }) {
   const scaleNotes = new Set(scale.notes);
+  const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].indexOf(scale.root);
   
-  // Check if a note (or its enharmonic) is in the scale
-  const isInScale = (note, enharmonic) => {
-    return scaleNotes.has(note) || scaleNotes.has(enharmonic);
+  // Build expected keys starting from root
+  const getExpectedKeys = () => {
+    const expected = new Set();
+    expected.add(`white-${rootIndex}`);
+    
+    let currentIndex = rootIndex;
+    for (let i = 1; i < scale.notes.length; i++) {
+      const targetNote = scale.notes[i];
+      for (let j = currentIndex + 1; j < whiteKeys.length; j++) {
+        if (whiteKeys[j] === targetNote) {
+          expected.add(`white-${j}`);
+          currentIndex = j;
+          break;
+        }
+      }
+    }
+    
+    // Add black keys that are in the scale pattern
+    // We need to find which black keys appear between the white keys we've selected
+    const blackKeyPositions = [
+      { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
+      { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
+      { note: 'F#', enharmonic: 'Gb', octave: 1, position: 4 },
+      { note: 'G#', enharmonic: 'Ab', octave: 1, position: 5 },
+      { note: 'A#', enharmonic: 'Bb', octave: 1, position: 6 },
+      { note: 'C#', enharmonic: 'Db', octave: 2, position: 8 },
+      { note: 'D#', enharmonic: 'Eb', octave: 2, position: 9 },
+      { note: 'F#', enharmonic: 'Gb', octave: 2, position: 11 },
+      { note: 'G#', enharmonic: 'Ab', octave: 2, position: 12 },
+      { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
+    ];
+    
+    // For each note in the scale, check if it's a black key and add the appropriate one
+    scale.notes.forEach(note => {
+      blackKeyPositions.forEach(({ note: bkNote, enharmonic: bkEnh, octave, position }) => {
+        // Check if this black key matches the scale note (considering enharmonics)
+        if (bkNote === note || bkEnh === note) {
+          // Only add if this black key is in the range from root to the last white key we found
+          const keyIndex = position - 1; // Convert to 0-indexed
+          if (keyIndex >= rootIndex && keyIndex <= currentIndex) {
+            expected.add(`black-${octave}-${bkNote}`);
+          }
+        }
+      });
+    });
+    
+    return expected;
   };
   
-  // Check if a note (or its enharmonic) is selected
-  const isSelected = (note, enharmonic) => {
-    return selectedNotes.has(note) || selectedNotes.has(enharmonic);
+  const expectedKeys = checked ? getExpectedKeys() : new Set();
+  
+  // Check if a specific key is selected
+  const isSelected = (keyId) => {
+    return selectedNotes.has(keyId);
+  };
+  
+  // Check if a specific key is in the expected scale
+  const isInScale = (keyId) => {
+    return expectedKeys.has(keyId);
   };
   
   // Get the display name (prefer the one in the scale)
@@ -35,29 +87,28 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
     return note;
   };
 
-  const handleKeyClick = (note, enharmonic) => {
+  const handleWhiteKeyClick = (note, index) => {
     if (checked) return;
-    // Toggle the note that's actually in the scale (or the one selected)
-    if (selectedNotes.has(enharmonic)) {
-      onNoteToggle(enharmonic);
-    } else if (selectedNotes.has(note)) {
-      onNoteToggle(note);
-    } else {
-      // Prefer the enharmonic if it's in the scale, otherwise use the note
-      const noteToToggle = scaleNotes.has(enharmonic) ? enharmonic : note;
-      onNoteToggle(noteToToggle);
-    }
+    const keyId = `white-${index}`;
+    onNoteToggle(keyId);
   };
 
-  const getKeyClassName = (note, enharmonic, isWhite = false, isFirstOctave = true) => {
-    const selected = isSelected(note, enharmonic);
-    const inScale = isInScale(note, enharmonic);
-    const isRoot = (note === scale.root || enharmonic === scale.root) && isFirstOctave;
+  const handleBlackKeyClick = (note, enharmonic, octave) => {
+    if (checked) return;
+    const displayNote = scaleNotes.has(enharmonic) ? enharmonic : note;
+    const keyId = `black-${octave}-${note}`;
+    onNoteToggle(keyId);
+  };
+
+  const getWhiteKeyClassName = (note, index) => {
+    const keyId = `white-${index}`;
+    const selected = isSelected(keyId);
+    const inScale = isInScale(keyId);
+    const isRoot = index === rootIndex && !checked;
     
-    let classes = isWhite ? 'white-key' : 'black-key';
+    let classes = 'white-key';
     
     if (checked) {
-      // After checking, show correct/incorrect feedback
       if (selected && inScale) {
         classes += ' correct';
       } else if (selected && !inScale) {
@@ -66,14 +117,37 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
         classes += ' missed';
       }
     } else {
-      // Before checking, show selection state
       if (selected) {
         classes += ' selected';
       }
     }
     
-    if (isRoot && !checked) {
+    if (isRoot) {
       classes += ' root';
+    }
+    
+    return classes;
+  };
+
+  const getBlackKeyClassName = (note, enharmonic, octave) => {
+    const keyId = `black-${octave}-${note}`;
+    const selected = isSelected(keyId);
+    const inScale = isInScale(keyId);
+    
+    let classes = 'black-key';
+    
+    if (checked) {
+      if (selected && inScale) {
+        classes += ' correct';
+      } else if (selected && !inScale) {
+        classes += ' incorrect';
+      } else if (!selected && inScale) {
+        classes += ' missed';
+      }
+    } else {
+      if (selected) {
+        classes += ' selected';
+      }
     }
     
     return classes;
@@ -82,35 +156,39 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
   return (
     <div className="piano-keyboard">
       <div className="white-keys">
-        {WHITE_KEYS.map((note, index) => {
-          const isFirstOctave = index < 7;
-          return (
-            <div
-              key={`${note}-${index}`}
-              className={getKeyClassName(note, null, true, isFirstOctave)}
-              onClick={() => handleKeyClick(note, null)}
-            >
-              <span className="note-label">{note}</span>
-            </div>
-          );
-        })}
+        {whiteKeys.map((note, index) => (
+          <div
+            key={`white-${index}`}
+            className={getWhiteKeyClassName(note, index)}
+            onClick={() => handleWhiteKeyClick(note, index)}
+          >
+            <span className="note-label">{note}</span>
+          </div>
+        ))}
       </div>
       <div className="black-keys">
         {BLACK_KEYS.map(({ note, enharmonic, octave, position }) => {
           const displayName = getDisplayName(note, enharmonic);
-          const isFirstOctave = octave === 1;
-          // Calculate position: each white key is ~7.143% (100/14), black keys centered between white keys
-          // Position is 1-indexed (1 = after first key), so center is at (position - 0.5) * keyWidth
-          // Black key is 6% wide, so left edge = center - 3%
-          const keyWidth = 100 / 14;
-          const center = (position - 0.5) * keyWidth;
-          const leftPercent = center - 3;
+          // Calculate position: black keys are centered between white keys
+          // Position N means the black key is between white key (N-1) and white key N
+          // Use transform to center precisely
+          const keyWidth = 100 / 14; // ~7.143% per white key
+          
+          // Center point between the two white keys
+          // White key (N-1) ends at (N-1) * keyWidth
+          // White key N starts at N * keyWidth  
+          // Center is at: (N-1) * keyWidth + keyWidth/2 = (N - 0.5) * keyWidth
+          const centerPercent = (position - 0.5) * keyWidth;
+          
           return (
             <div
-              key={`${note}-${octave}`}
-              className={getKeyClassName(note, enharmonic, false, isFirstOctave)}
-              style={{ left: `${leftPercent}%` }}
-              onClick={() => handleKeyClick(note, enharmonic)}
+              key={`black-${octave}-${note}`}
+              className={getBlackKeyClassName(note, enharmonic, octave)}
+              style={{ 
+                left: `${centerPercent}%`,
+                transform: 'translateX(-50%)'
+              }}
+              onClick={() => handleBlackKeyClick(note, enharmonic, octave)}
             >
               <span className="note-label">{displayName}</span>
             </div>

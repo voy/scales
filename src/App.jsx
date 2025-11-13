@@ -34,29 +34,69 @@ function App() {
   const handleCheck = () => {
     if (!scale) return;
     
-    // Enharmonic mapping
-    const enharmonics = {
-      'C#': 'Db', 'Db': 'C#',
-      'D#': 'Eb', 'Eb': 'D#',
-      'F#': 'Gb', 'Gb': 'F#',
-      'G#': 'Ab', 'Ab': 'G#',
-      'A#': 'Bb', 'Bb': 'A#'
-    };
+    // Find root note position in first octave (indices 0-6)
+    const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].indexOf(scale.root);
     
-    const correctNotes = new Set(scale.notes);
-    const selectedArray = Array.from(selectedNotes);
-    const correctArray = Array.from(correctNotes);
+    // Build expected scale starting from root in first octave
+    const expectedKeys = new Set();
+    const whiteKeys = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'A', 'B'];
     
-    // Check if sets match (considering enharmonics)
-    const isMatch = 
-      selectedArray.length === correctArray.length &&
-      selectedArray.every(note => {
-        // Direct match
-        if (correctNotes.has(note)) return true;
-        // Enharmonic match
-        const enharmonic = enharmonics[note];
-        return enharmonic && correctNotes.has(enharmonic);
+    // Add root note (first octave)
+    expectedKeys.add(`white-${rootIndex}`);
+    
+    // Build scale pattern from root
+    const scaleNotes = scale.notes;
+    let currentIndex = rootIndex;
+    
+    // For each note in the scale after the root
+    for (let i = 1; i < scaleNotes.length; i++) {
+      const targetNote = scaleNotes[i];
+      
+      // Find the next occurrence of this note starting from currentIndex
+      for (let j = currentIndex + 1; j < whiteKeys.length; j++) {
+        if (whiteKeys[j] === targetNote) {
+          expectedKeys.add(`white-${j}`);
+          currentIndex = j;
+          break;
+        }
+      }
+    }
+    
+    // Add black keys that are in the scale pattern
+    const blackKeyPositions = [
+      { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
+      { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
+      { note: 'F#', enharmonic: 'Gb', octave: 1, position: 4 },
+      { note: 'G#', enharmonic: 'Ab', octave: 1, position: 5 },
+      { note: 'A#', enharmonic: 'Bb', octave: 1, position: 6 },
+      { note: 'C#', enharmonic: 'Db', octave: 2, position: 8 },
+      { note: 'D#', enharmonic: 'Eb', octave: 2, position: 9 },
+      { note: 'F#', enharmonic: 'Gb', octave: 2, position: 11 },
+      { note: 'G#', enharmonic: 'Ab', octave: 2, position: 12 },
+      { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
+    ];
+    
+    // For each note in the scale, check if it's a black key and add the appropriate one
+    scaleNotes.forEach(note => {
+      blackKeyPositions.forEach(({ note: bkNote, enharmonic: bkEnh, octave, position }) => {
+        // Check if this black key matches the scale note (considering enharmonics)
+        if (bkNote === note || bkEnh === note) {
+          // Only add if this black key is in the range from root to the last white key we found
+          const keyIndex = position - 1; // Convert to 0-indexed
+          if (keyIndex >= rootIndex && keyIndex <= currentIndex) {
+            expectedKeys.add(`black-${octave}-${bkNote}`);
+          }
+        }
       });
+    });
+    
+    // Compare selected keys with expected keys
+    const selectedArray = Array.from(selectedNotes);
+    const expectedArray = Array.from(expectedKeys);
+    
+    const isMatch = 
+      selectedArray.length === expectedArray.length &&
+      selectedArray.every(key => expectedKeys.has(key));
     
     setIsCorrect(isMatch);
     setChecked(true);
