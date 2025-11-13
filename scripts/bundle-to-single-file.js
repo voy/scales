@@ -74,6 +74,33 @@ while ((jsMatch = jsRegex.exec(html)) !== null) {
   }
 }
 
+// Find the position of the closing </body> tag BEFORE inlining JavaScript
+// This prevents matching </body> strings inside the JavaScript code
+// We need to find the LAST </body> that's not inside a script tag
+let bodyCloseIndex = -1;
+const bodyCloseRegex = /<\/body>/gi;
+let match;
+let lastValidMatch = null;
+
+while ((match = bodyCloseRegex.exec(html)) !== null) {
+  // Check if this </body> is inside a script tag by looking backwards
+  const beforeMatch = html.substring(0, match.index);
+  const lastScriptOpen = beforeMatch.lastIndexOf('<script');
+  const lastScriptClose = beforeMatch.lastIndexOf('</script>');
+  
+  // If there's an unclosed script tag before this </body>, skip it
+  if (lastScriptOpen > lastScriptClose) {
+    continue;
+  }
+  
+  // This is a valid closing </body> tag (keep track of the last one)
+  lastValidMatch = match;
+}
+
+if (lastValidMatch) {
+  bodyCloseIndex = lastValidMatch.index;
+}
+
 // Remove original script tags from head
 jsFiles.forEach(({ original }) => {
   html = html.replace(original, '');
@@ -82,8 +109,19 @@ jsFiles.forEach(({ original }) => {
 // Add all JS files as a single script at the end of body
 if (jsFiles.length > 0) {
   const allJsContent = jsFiles.map(f => f.content).join('\n');
-  // Insert before closing </body> tag
-  html = html.replace('</body>', `  <script>${allJsContent}</script>\n</body>`);
+  // Escape </script> tags in JavaScript to prevent premature script closure
+  const escapedJsContent = allJsContent.replace(/<\/script>/gi, '<\\/script>');
+  
+  // Insert before the closing </body> tag we found earlier
+  if (bodyCloseIndex !== -1) {
+    // Adjust index if we removed script tags (they were before </body>)
+    html = html.substring(0, bodyCloseIndex) + 
+           `  <script>${escapedJsContent}</script>\n` + 
+           html.substring(bodyCloseIndex);
+  } else {
+    // Fallback: try to find </body> at the end (shouldn't happen, but just in case)
+    html = html.replace(/<\/body>(?=\s*<\/html>|$)/i, `  <script>${escapedJsContent}</script>\n</body>`);
+  }
 }
 
 // Remove any remaining empty script tags or module script tags
