@@ -1,21 +1,69 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { generateRandomScale } from './utils/scaleLogic'
 import PianoKeyboard from './components/PianoKeyboard'
 import './App.css'
+
+const HINT_TIMEOUT = 60000;
 
 function App() {
   const [scale, setScale] = useState(null);
   const [selectedNotes, setSelectedNotes] = useState(new Set());
   const [checked, setChecked] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const timerRef = useRef(null);
+  const checkedRef = useRef(false);
 
+  // Initial scale generation
   useEffect(() => {
     const newScale = generateRandomScale();
     setScale(newScale);
     setSelectedNotes(new Set());
     setChecked(false);
     setIsCorrect(false);
+    setShowHint(false);
+    checkedRef.current = false;
   }, []);
+  
+  // Timer for hint display
+  useEffect(() => {
+    if (!scale) return;
+    
+    // Clear any existing timer
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    
+    // Reset hint and checked ref when scale changes
+    setShowHint(false);
+    checkedRef.current = false;
+    
+    // Set timer for 90 seconds
+    timerRef.current = setTimeout(() => {
+      // Only show hint if not already checked
+      if (!checkedRef.current) {
+        setShowHint(true);
+      }
+    }, HINT_TIMEOUT);
+    
+    // Cleanup timer on unmount or scale change
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, [scale?.root, scale?.type]);
+  
+  // Hide hint when answer is checked
+  useEffect(() => {
+    checkedRef.current = checked;
+    if (checked) {
+      setShowHint(false);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    }
+  }, [checked]);
 
   const handleNoteToggle = (note) => {
     if (checked) return; // Don't allow changes after checking
@@ -33,6 +81,9 @@ function App() {
 
   const handleCheck = () => {
     if (!scale) return;
+    
+    // Hide hint when checking answer
+    setShowHint(false);
     
     // Find root note position in first octave (indices 0-6)
     const rootIndex = ['C', 'D', 'E', 'F', 'G', 'A', 'H'].indexOf(scale.root);
@@ -119,11 +170,27 @@ function App() {
   };
 
   const handleNewScale = () => {
+    // Clear timer and hide hint
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    setShowHint(false);
+    checkedRef.current = false;
+    
     const newScale = generateRandomScale();
     setScale(newScale);
     setSelectedNotes(new Set());
     setChecked(false);
     setIsCorrect(false);
+  };
+  
+  // Get pattern hint as W-H notation
+  const getPatternHint = () => {
+    if (!scale) return '';
+    const pattern = scale.type === 'major' 
+      ? [2, 2, 1, 2, 2, 2, 1] 
+      : [2, 1, 2, 2, 1, 2, 2];
+    return pattern.map(interval => interval === 2 ? 'G' : 'H').join('-');
   };
 
   if (!scale) return <div>Laden...</div>;
@@ -139,6 +206,11 @@ function App() {
         <div className="scale-info">
           <h2>Konstruiere: {scale.root} {scaleTypeLabel}</h2>
           <p className="instruction">Klicke die Tasten, die zu dieser Tonleiter gehören</p>
+          {showHint && !checked && (
+            <div className="pattern-hint">
+              <span className="hint-label">Hinweis:</span> {getPatternHint()}
+            </div>
+          )}
         </div>
         <PianoKeyboard 
           scale={scale}
