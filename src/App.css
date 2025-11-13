@@ -12,6 +12,11 @@ header {
 header h1 {
   font-size: 2rem;
   color: #4a7fa3;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] header h1 {
+  color: #64b5f6;
 }
 
 main {
@@ -29,6 +34,11 @@ main {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
   color: #4a7fa3;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .scale-info h2 {
+  color: #64b5f6;
 }
 
 .scale-notes {
@@ -41,6 +51,11 @@ main {
   font-size: 1.1rem;
   color: #666;
   margin-top: 0.5rem;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .instruction {
+  color: #b0b0b0;
 }
 
 .controls {
@@ -77,6 +92,20 @@ main {
   cursor: not-allowed;
 }
 
+[data-theme="dark"] .check-button {
+  background: #4a9bc4;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .check-button:hover:not(:disabled) {
+  background: #5ab5d4;
+}
+
+[data-theme="dark"] .check-button:disabled {
+  background: #555;
+  color: #888;
+}
+
 .new-scale-button {
   background: #8ba5c1;
   color: #2a3a4a;
@@ -104,10 +133,25 @@ main {
   background: #ffcdd2;
 }
 
+[data-theme="dark"] .feedback.correct {
+  color: #81c784;
+  background: #2e7d32;
+}
+
+[data-theme="dark"] .feedback.incorrect {
+  color: #e57373;
+  background: #c62828;
+}
+
 .correct-answer {
   font-size: 1.1rem;
   color: #666;
   font-style: italic;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .correct-answer {
+  color: #b0b0b0;
 }
 
 .pattern-hint {
@@ -120,6 +164,13 @@ main {
   color: #f57f17;
   font-weight: 600;
   animation: fadeIn 1s ease-in;
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] .pattern-hint {
+  background: #5d4037;
+  border-color: #8d6e63;
+  color: #ffb74d;
 }
 
 .hint-label {
@@ -168,6 +219,16 @@ main {
   transform: translateY(-1px);
 }
 
+[data-theme="dark"] .advanced-toggle {
+  border-color: #64b5f6;
+  color: #64b5f6;
+}
+
+[data-theme="dark"] .advanced-toggle:hover {
+  background: #2a2a2a;
+  border-color: #90caf9;
+}
+
 .random-buttons {
   display: flex;
   gap: 0.75rem;
@@ -195,6 +256,16 @@ main {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+[data-theme="dark"] .scale-button {
+  background: #5a7a9a;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .scale-button:hover {
+  background: #6a8aaa;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+
 .scale-button.small {
   padding: 0.6rem 1rem;
   font-size: 0.95rem;
@@ -220,6 +291,11 @@ main {
   text-align: center;
   font-weight: 600;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .scale-group h3 {
+  color: #64b5f6;
 }
 
 .scale-buttons-grid {

@@ -20,6 +20,31 @@ function App() {
   const timerRef = useRef(null);
   const checkedRef = useRef(false);
 
+  // Apply dark mode based on system preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleChange = (e) => {
+      if (e.matches) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+      }
+    };
+    
+    // Set initial theme immediately
+    if (mediaQuery.matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    
+    // Listen for changes
+    mediaQuery.addEventListener('change', handleChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
+
   // Initial scale generation
   useEffect(() => {
     const newScale = generateRandomScale();

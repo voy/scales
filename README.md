@@ -13,6 +13,7 @@ This is a vibe coded app created for my son to help him prepare for a test in mu
 - Scale types: Major and Minor
 - Visual piano keyboard display
 - Correct accidentals (e.g., F Major shows Bb)
+- Automatic dark mode that follows your system preference
 
 ## Getting Started
 

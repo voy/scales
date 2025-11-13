@@ -20,11 +20,16 @@
   border-radius: 0 0 8px 8px;
   position: relative;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding-bottom: 1rem;
+}
+
+[data-theme="dark"] .white-key {
+  background: #2a2a2a;
+  border-color: #555;
 }
 
 .white-key.selected {
@@ -53,9 +58,20 @@
   border: 2px dashed #ffc107;
 }
 
+[data-theme="dark"] .white-key.missed {
+  background: #00bcd4;
+  color: #ffffff;
+  border: 2px dashed #0097a7;
+}
+
 .white-key .note-label {
   font-size: 1.2rem;
   font-weight: 500;
+  transition: color 0.2s;
+}
+
+[data-theme="dark"] .white-key .note-label {
+  color: #e0e0e0;
 }
 
 .black-keys {
@@ -85,6 +101,10 @@
   z-index: 1;
 }
 
+[data-theme="dark"] .black-key {
+  background: #1a1a1a;
+}
+
 .black-key.selected {
   background: #42a5f5;
   color: #0d47a1;
@@ -106,6 +126,12 @@
   border: 2px dashed #fbc02d;
 }
 
+[data-theme="dark"] .black-key.missed {
+  background: #00bcd4;
+  color: #ffffff;
+  border: 2px dashed #0097a7;
+}
+
 .black-key .note-label {
   font-size: 0.9rem;
   font-weight: 500;
@@ -114,5 +140,9 @@
 
 .black-key.missed .note-label {
   color: #f57f17;
+}
+
+[data-theme="dark"] .black-key.missed .note-label {
+  color: #ffffff;
 }
 
