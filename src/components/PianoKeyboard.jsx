@@ -38,7 +38,7 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
     }
     
     // Add black keys that are in the scale pattern
-    // We need to find which black keys appear between the white keys we've selected
+    // We need to find which black keys appear in the scale sequence
     const blackKeyPositions = [
       { note: 'C#', enharmonic: 'Db', octave: 1, position: 1 },
       { note: 'D#', enharmonic: 'Eb', octave: 1, position: 2 },
@@ -52,15 +52,25 @@ function PianoKeyboard({ scale, selectedNotes, onNoteToggle, checked, isCorrect 
       { note: 'A#', enharmonic: 'Bb', octave: 2, position: 13 },
     ];
     
-    // For each note in the scale, check if it's a black key and add the appropriate one
-    scale.notes.forEach(note => {
+    // For each note in the scale, if it's a black key, find the appropriate black key position
+    // We need to determine which black key to use based on where it appears in the scale sequence
+    scale.notes.forEach((note, scaleIndex) => {
       blackKeyPositions.forEach(({ note: bkNote, enharmonic: bkEnh, octave, position }) => {
         // Check if this black key matches the scale note (considering enharmonics)
         if (bkNote === note || bkEnh === note) {
-          // Only add if this black key is in the range from root to the last white key we found
-          const keyIndex = position - 1; // Convert to 0-indexed
-          if (keyIndex >= rootIndex && keyIndex <= currentIndex) {
-            expected.add(`black-${octave}-${bkNote}`);
+          const keyIndex = position - 1; // Convert to 0-indexed white key position
+          // For scales starting at root, include black keys that are:
+          // 1. At or after the root position
+          // 2. Part of the scale (we know it is because note matches)
+          // 3. Use the octave that fits in the scale pattern
+          if (keyIndex >= rootIndex) {
+            // Determine which octave to use - prefer the one that's in the scale range
+            // If the keyIndex is in first octave range (0-6), use octave 1
+            // If the keyIndex is in second octave range (7-13), use octave 2
+            const useOctave = keyIndex < 7 ? 1 : 2;
+            if (octave === useOctave) {
+              expected.add(`black-${octave}-${bkNote}`);
+            }
           }
         }
       });
